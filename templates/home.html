@@ -169,8 +169,10 @@
                                         <td>{{ item.item }}</td>
                                         <td class="text-center fw-bold status-{{ item.status }}">{{ item.value }}</td>
                                         <td class="text-center">
-                                            {% if item.score > 0 %}
-                                                <span class="badge bg-danger rounded-pill">+{{ item.score }}</span>
+                                            {% if item.score|stringformat:"s" != "0" and item.score != 0 and item.score != "-" %}
+                                                <span class="badge bg-danger rounded-pill">
+                                                    {% if item.score|stringformat:"s"|first != "+" %}+{% endif %}{{ item.score }}
+                                                </span>
                                             {% else %}
                                                 <span class="text-muted">-</span>
                                             {% endif %}
