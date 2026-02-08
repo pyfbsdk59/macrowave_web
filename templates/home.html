@@ -1,109 +1,21 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MacroWave 總經儀表板</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background-color: #f8f9fa; }
-        .card { border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .status-Safe { color: green; font-weight: bold; }
-        .status-Warning { color: orange; font-weight: bold; }
-        .status-Danger { color: red; font-weight: bold; }
-        .header-section { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 40px 0; margin-bottom: 30px; }
-    </style>
-</head>
-<body>
-
-    <div class="header-section text-center">
-        <h1>MacroWave V34 Dashboard</h1>
-        <p>即時總經數據監控中心</p>
-        <small>最後更新: {{ last_updated }}</small>
+<div class="container mt-3">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <span class="badge bg-secondary mb-2">資料來源: {{ data_source }}</span>
+            
+            <button class="btn btn-outline-light btn-sm mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#uploadBox">
+                📤 上傳更新數據
+            </button>
+            
+            <div class="collapse" id="uploadBox">
+                <div class="card card-body text-dark">
+                    <form method="post" enctype="multipart/form-data" class="d-flex gap-2">
+                        {% csrf_token %}
+                        {{ form.file }}
+                        <button type="submit" class="btn btn-primary btn-sm">上傳並更新</button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <div class="container">
-        
-        <div class="row mb-4">
-            <div class="col-md-12">
-                <div class="card p-4 text-center">
-                    <h2>Mark 17 總經評分: <span class="text-primary">{{ total_score }}</span></h2>
-                    <h3 class="status-{{ advice }}">建議策略: {{ advice }}</h3>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-dark text-white">美日債券利差</div>
-                    <div class="card-body">
-                        <table class="table">
-                            <tr><td>美債 10Y</td><td>{{ us_jp_spread.us }}%</td></tr>
-                            <tr><td>日債 10Y</td><td>{{ us_jp_spread.jp }}%</td></tr>
-                            <tr>
-                                <td><strong>利差</strong></td>
-                                <td class="status-{{ us_jp_spread.status }}">{{ us_jp_spread.spread }}%</td>
-                            </tr>
-                        </table>
-                        {% if us_jp_spread.spread < 2.0 %}
-                        <div class="alert alert-danger">⚠️ 警告：利差已跌破 2%！</div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-warning text-dark">貴金屬重挫偵測 (>50%)</div>
-                    <div class="card-body">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr><th>商品</th><th>現價</th><th>跌幅</th><th>狀態</th></tr>
-                            </thead>
-                            <tbody>
-                                {% for metal in metals %}
-                                <tr>
-                                    <td>{{ metal.name }}</td>
-                                    <td>{{ metal.current }}</td>
-                                    <td>{{ metal.drop }}%</td>
-                                    <td class="status-{{ metal.status }}">{{ metal.status }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header bg-info text-white">Mark 17 指標細節</div>
-                    <div class="card-body">
-                        <table class="table table-hover">
-                            <thead><tr><th>項目</th><th>數值</th><th>得分</th></tr></thead>
-                            <tbody>
-                                {% for item in mark17 %}
-                                <tr>
-                                    <td>{{ item.item }}</td>
-                                    <td class="status-{{ item.status }}">{{ item.value }}</td>
-                                    <td>{{ item.score }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <footer class="text-center py-4 text-muted">
-        &copy; 2026 MacroWave System | Data Source: FRED, Yahoo Finance, CNYES
-    </footer>
-
-</body>
-</html>
+</div>

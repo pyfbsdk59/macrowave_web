@@ -13,3 +13,15 @@ class MacroIndicator(models.Model):
 
     def __str__(self):
         return f"{self.name}: {self.value}"
+
+
+class DashboardData(models.Model):
+    # 儲存完整的儀表板 Context (包含所有指標、評分、列表)
+    content = models.JSONField() 
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return f"Data Snapshot at {self.updated_at}"
