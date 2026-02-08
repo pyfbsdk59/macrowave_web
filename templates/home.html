@@ -1,53 +1,197 @@
-<div class="container mt-4">
-    
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MacroWave 總經儀表板</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f0f2f5; font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        .card { border: none; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-5px); }
+        .header-section { background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); color: white; padding: 40px 0; margin-bottom: 30px; }
+        
+        /* 狀態顏色 */
+        .status-Safe { color: #198754; font-weight: bold; } /* Green */
+        .status-Warning { color: #fd7e14; font-weight: bold; } /* Orange */
+        .status-Danger { color: #dc3545; font-weight: bold; } /* Red */
+        .status-Unknown { color: #6c757d; }
+        
+        /* 建議標籤 */
+        .advice-Safe { background-color: #d1e7dd; color: #0f5132; padding: 5px 10px; border-radius: 5px; }
+        .advice-Caution { background-color: #fff3cd; color: #664d03; padding: 5px 10px; border-radius: 5px; }
+        .advice-Reduce { background-color: #ffecb5; color: #664d03; padding: 5px 10px; border-radius: 5px; border: 1px solid #ffc107; }
+        .advice-Flee { background-color: #f8d7da; color: #842029; padding: 5px 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <div class="row align-items-center text-center">
-                
-                <div class="col-md-4 mb-2 mb-md-0">
-                    <h5 class="mb-0 text-muted">目前數據狀態</h5>
-                    <span class="badge bg-info text-dark fs-6">{{ data_source_display }}</span>
-                </div>
-
-                <div class="col-md-4 mb-2 mb-md-0 border-start border-end">
-                    <form action="{% url 'manual_scrape' %}" method="post">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger w-100" onclick="this.innerHTML='⏳ 正在連線更新中...'; this.disabled=true; this.form.submit();">
-                            🔄 雲端手動更新 (API)
-                        </button>
-                    </form>
-                    <small class="text-muted d-block mt-1">Render 伺服器直接抓取 Yahoo/FRED</small>
-                </div>
-
-                <div class="col-md-4">
-                    <button class="btn btn-success w-100" type="button" data-bs-toggle="collapse" data-bs-target="#uploadBox">
-                        📤 上傳 GUI JSON 檔案
-                    </button>
-                    <small class="text-muted d-block mt-1">使用本機運算結果</small>
-                </div>
-            </div>
-
-            <div class="collapse mt-3" id="uploadBox">
-                <div class="card card-body bg-light">
-                    <form method="post" enctype="multipart/form-data" class="d-flex gap-2 align-items-center">
-                        {% csrf_token %}
-                        <div class="flex-grow-1">
-                            {{ form.file }}
-                        </div>
-                        <button type="submit" class="btn btn-primary">確認上傳</button>
-                    </form>
-                </div>
-            </div>
-
-        </div>
+    <div class="header-section text-center">
+        <h1>📊 MacroWave 總經戰情室</h1>
+        <p class="opacity-75">全方位總體經濟與資產配置監控</p>
     </div>
-</div>
+
+    <div class="container">
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row align-items-center text-center">
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <h6 class="text-uppercase text-muted fw-bold" style="font-size: 0.8rem;">目前數據來源</h6>
+                        <span class="badge bg-primary fs-6">{{ data_source_display }}</span>
+                    </div>
+                    <div class="col-md-4 mb-3 mb-md-0 border-start border-end">
+                        <form action="{% url 'manual_scrape' %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger w-100 fw-bold" onclick="this.innerHTML='⏳ 連線更新中 (約需10秒)...'; this.disabled=true; this.form.submit();">
+                                🔄 雲端手動更新 (API)
+                            </button>
+                        </form>
+                        <small class="text-muted d-block mt-1" style="font-size: 0.8rem;">Render 伺服器直接抓取 (可能受限)</small>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-success w-100 fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#uploadBox">
+                            📤 上傳 GUI JSON
+                        </button>
+                        <small class="text-muted d-block mt-1" style="font-size: 0.8rem;">使用本地端完整數據 (推薦)</small>
+                    </div>
+                </div>
+                <div class="collapse mt-3" id="uploadBox">
+                    <div class="card card-body bg-light border-0">
+                        <form method="post" enctype="multipart/form-data" class="d-flex gap-2 align-items-center">
+                            {% csrf_token %}
+                            <input type="file" name="file" class="form-control" required>
+                            <button type="submit" class="btn btn-primary">上傳</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            
+            <div class="col-md-12 mb-4">
+                <div class="card text-center p-4" style="background: #fff;">
+                    <h4 class="text-muted mb-3">Mark 17 總經風險評分</h4>
+                    <div class="d-flex justify-content-center align-items-center gap-4">
+                        <div>
+                            <span class="display-3 fw-bold text-dark">{{ total_score }}</span>
+                            <span class="text-muted fs-5">/ 15</span>
+                        </div>
+                        <div class="advice-{{ advice }} fs-4 fw-bold">
+                            建議策略: {{ advice }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header bg-dark text-white fw-bold">📉 美日債券利差監控</div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-muted">美債 10Y</span>
+                            <span class="fw-bold">{{ us_jp_spread.us }}%</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-muted">日債 10Y</span>
+                            <span class="fw-bold">{{ us_jp_spread.jp }}%</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold fs-5">利差 (Spread)</span>
+                            <span class="fs-4 status-{{ us_jp_spread.status }}">{{ us_jp_spread.spread }}%</span>
+                        </div>
+                        {% if us_jp_spread.spread < 2.0 %}
+                            <div class="alert alert-danger mt-3 mb-0 py-2 text-center fw-bold">⚠️ 警告：利差已跌破 2%</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header bg-warning text-dark fw-bold">🥇 貴金屬重挫偵測 (>50%)</div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-striped mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>商品</th>
+                                        <th class="text-end">現價</th>
+                                        <th class="text-end">跌幅</th>
+                                        <th class="text-center">狀態</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for metal in metals %}
+                                    <tr>
+                                        <td class="fw-bold">{{ metal.name }}</td>
+                                        <td class="text-end">{{ metal.current }}</td>
+                                        <td class="text-end text-muted">{{ metal.drop }}%</td>
+                                        <td class="text-center status-{{ metal.status }}">{{ metal.status }}</td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="4" class="text-center text-muted py-3">暫無數據</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-12 mt-4">
+                <div class="card">
+                    <div class="card-header bg-secondary text-white fw-bold">📋 Mark 17 指標明細</div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>監測項目</th>
+                                        <th class="text-center">數值 / 狀態</th>
+                                        <th class="text-center">風險得分</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in mark17 %}
+                                    <tr>
+                                        <td>{{ item.item }}</td>
+                                        <td class="text-center fw-bold status-{{ item.status }}">{{ item.value }}</td>
+                                        <td class="text-center">
+                                            {% if item.score > 0 %}
+                                                <span class="badge bg-danger rounded-pill">+{{ item.score }}</span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="3" class="text-center text-muted py-3">暫無數據，請執行更新</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div> </div>
+
+    <footer class="text-center py-4 mt-5 text-muted border-top">
+        <small>&copy; 2026 MacroWave System | Powered by Django & Render</small>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
