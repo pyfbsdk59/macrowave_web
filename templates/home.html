@@ -11,13 +11,11 @@
         .card:hover { transform: translateY(-5px); }
         .header-section { background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); color: white; padding: 40px 0; margin-bottom: 30px; }
         
-        /* 狀態顏色 */
-        .status-Safe { color: #198754; font-weight: bold; } /* Green */
-        .status-Warning { color: #fd7e14; font-weight: bold; } /* Orange */
-        .status-Danger { color: #dc3545; font-weight: bold; } /* Red */
+        .status-Safe { color: #198754; font-weight: bold; }
+        .status-Warning { color: #fd7e14; font-weight: bold; }
+        .status-Danger { color: #dc3545; font-weight: bold; }
         .status-Unknown { color: #6c757d; }
         
-        /* 建議標籤 */
         .advice-Safe { background-color: #d1e7dd; color: #0f5132; padding: 5px 10px; border-radius: 5px; }
         .advice-Caution { background-color: #fff3cd; color: #664d03; padding: 5px 10px; border-radius: 5px; }
         .advice-Reduce { background-color: #ffecb5; color: #664d03; padding: 5px 10px; border-radius: 5px; border: 1px solid #ffc107; }
@@ -48,21 +46,24 @@
                     <div class="col-md-4 mb-3 mb-md-0">
                         <h6 class="text-uppercase text-muted fw-bold" style="font-size: 0.8rem;">目前數據來源</h6>
                         <span class="badge bg-primary fs-6">{{ data_source_display }}</span>
+                        {% if date %}
+                        <div class="mt-1 text-muted" style="font-size: 0.85rem;">資料基準日: <strong>{{ date }}</strong></div>
+                        {% endif %}
                     </div>
                     <div class="col-md-4 mb-3 mb-md-0 border-start border-end">
                         <form action="{% url 'manual_scrape' %}" method="post">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-danger w-100 fw-bold" onclick="this.innerHTML='⏳ 連線更新中 (約需10秒)...'; this.disabled=true; this.form.submit();">
+                            <button type="submit" class="btn btn-danger w-100 fw-bold" onclick="this.innerHTML='⏳ 連線更新中...'; this.disabled=true; this.form.submit();">
                                 🔄 雲端手動更新 (API)
                             </button>
                         </form>
-                        <small class="text-muted d-block mt-1" style="font-size: 0.8rem;">Render 伺服器直接抓取 (可能受限)</small>
+                        <small class="text-muted d-block mt-1" style="font-size: 0.8rem;">Render 伺服器直接抓取</small>
                     </div>
                     <div class="col-md-4">
                         <button class="btn btn-success w-100 fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#uploadBox">
                             📤 上傳 GUI JSON
                         </button>
-                        <small class="text-muted d-block mt-1" style="font-size: 0.8rem;">使用本地端完整數據 (推薦)</small>
+                        <small class="text-muted d-block mt-1" style="font-size: 0.8rem;">使用本地 V35+ 完整數據</small>
                     </div>
                 </div>
                 <div class="collapse mt-3" id="uploadBox">
@@ -179,7 +180,7 @@
                                         </td>
                                     </tr>
                                     {% empty %}
-                                    <tr><td colspan="3" class="text-center text-muted py-3">暫無數據，請執行更新</td></tr>
+                                    <tr><td colspan="3" class="text-center text-muted py-3">暫無數據</td></tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
@@ -187,6 +188,26 @@
                     </div>
                 </div>
             </div>
+
+            {% if raw_indicators %}
+            <div class="col-md-12 mt-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white fw-bold">📑 基礎總經指標 (原始數據)</div>
+                    <div class="card-body">
+                        <div class="row row-cols-2 row-cols-md-4 g-3">
+                            {% for key, value in raw_indicators.items %}
+                            <div class="col">
+                                <div class="p-3 border rounded bg-light text-center">
+                                    <div class="text-muted small text-uppercase">{{ key }}</div>
+                                    <div class="fw-bold text-primary mt-1">{{ value }}</div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
 
         </div> </div>
 
