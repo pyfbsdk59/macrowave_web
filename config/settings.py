@@ -10,6 +10,11 @@ ALLOWED_HOSTS = ['*']
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-key-change-me')
 
+# ... 其他設定 ...
+
+# 自訂一個簡單的 API 金鑰，GUI 上傳時必須吻合才能存入
+API_UPLOAD_KEY = os.environ.get('API_UPLOAD_KEY', 'macrowave168')
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',

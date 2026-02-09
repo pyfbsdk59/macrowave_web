@@ -22,4 +22,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
     path('scrape/', views.manual_scrape, name='manual_scrape'),
+    path('api/upload/', views.api_upload, name='api_upload'), # 新增這行
 ]
