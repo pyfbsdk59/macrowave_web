@@ -12,34 +12,25 @@
         .card:hover { transform: translateY(-3px); }
         .card-header { font-weight: bold; padding: 15px 20px; border-bottom: 1px solid rgba(0,0,0,0.05); }
         
-        /* 狀態顏色 */
         .status-Safe { color: #198754; font-weight: bold; }
         .status-Warning { color: #fd7e14; font-weight: bold; }
         .status-Danger { color: #dc3545; font-weight: bold; }
-        .status-Unknown { color: #6c757d; }
-
-        /* 建議標籤 */
+        
         .advice-badge { padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 1.2rem; }
         .advice-Safe { background-color: #d1e7dd; color: #0f5132; }
         .advice-Caution { background-color: #fff3cd; color: #664d03; }
         .advice-Reduce { background-color: #ffecb5; color: #664d03; border: 2px solid #ffc107; }
         .advice-Flee { background-color: #f8d7da; color: #842029; }
 
-        /* 指標卡片樣式 */
         .metric-item { padding: 12px; border-radius: 8px; background-color: #f8f9fa; border: 1px solid #e9ecef; height: 100%; }
         .metric-label { font-size: 0.85rem; color: #6c757d; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
         .metric-value { font-size: 1.1rem; font-weight: 700; color: #212529; word-break: break-word; }
         .metric-sub { font-size: 0.75rem; color: #adb5bd; margin-top: 2px; }
 
-        /* 分類左側邊條 */
         .section-bar-tw { border-left: 5px solid #0d6efd; }
         .section-bar-us { border-left: 5px solid #dc3545; }
         .section-bar-cycle { border-left: 5px solid #198754; }
         .section-bar-sentiment { border-left: 5px solid #ffc107; }
-        
-        /* 數值漲跌顏色 (用於匯率) */
-        .diff-pos { color: #dc3545; } /* 漲為紅 (台股習慣) 或依個人習慣調整 */
-        .diff-neg { color: #198754; } /* 跌為綠 */
     </style>
 </head>
 <body>
@@ -64,15 +55,15 @@
             <div class="card-body">
                 <div class="row align-items-center text-center">
                     
-                    <div class="col-md-3 mb-3 mb-md-0">
+                    <div class="col-md-4 mb-3 mb-md-0">
                         <h6 class="text-uppercase text-muted fw-bold" style="font-size: 0.8rem;">目前數據來源</h6>
-                        <span class="badge bg-primary fs-6">{{ data_source_display }}</span>
+                        <span class="badge bg-primary fs-6 text-wrap" style="line-height: 1.5;">{{ data_source_display }}</span>
                         {% if date %}
-                        <div class="mt-1 text-muted" style="font-size: 0.85rem;">資料基準日: <strong>{{ date }}</strong></div>
+                        <div class="mt-2 text-muted" style="font-size: 0.85rem;">資料基準日: <strong>{{ date }}</strong></div>
                         {% endif %}
                     </div>
 
-                    <div class="col-md-3 mb-3 mb-md-0 border-start">
+                    <div class="col-md-4 mb-3 mb-md-0 border-start border-end">
                         <form action="{% url 'manual_scrape' %}" method="post">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-outline-danger w-100 fw-bold" onclick="this.innerHTML='⏳ 更新中...'; this.disabled=true; this.form.submit();">
@@ -82,41 +73,24 @@
                         <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">Render 伺服器</small>
                     </div>
 
-                    <div class="col-md-3 mb-3 mb-md-0 border-start">
+                    <div class="col-md-4">
                         <button class="btn btn-outline-success w-100 fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#uploadBox">
                             📤 上傳 GUI JSON
                         </button>
                         <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">選擇電腦檔案</small>
                     </div>
-
-                    <div class="col-md-3 border-start">
-                        <button class="btn btn-outline-primary w-100 fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#urlBox">
-                            🔗 載入 Gist 連結
-                        </button>
-                        <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">GitHub Gist / URL</small>
+                    
                     </div>
-                </div>
 
                 <div class="collapse mt-3" id="uploadBox" data-bs-parent=".card-body">
                     <div class="card card-body bg-light border-0">
-                        <form method="post" enctype="multipart/form-data" class="d-flex gap-2 align-items-center">
+                        <form method="post" enctype="multipart/form-data" class="d-flex gap-2 align-items-center justify-content-center">
                             {% csrf_token %}
-                            <input type="file" name="file" class="form-control" required>
+                            <input type="file" name="file" class="form-control w-75" required>
                             <button type="submit" class="btn btn-success">上傳</button>
                         </form>
                     </div>
                 </div>
-
-                <div class="collapse mt-3" id="urlBox" data-bs-parent=".card-body">
-                    <div class="card card-body bg-light border-0">
-                        <form method="post" class="d-flex gap-2 align-items-center">
-                            {% csrf_token %}
-                            <input type="url" name="json_url" class="form-control" placeholder="請貼上 JSON 的 Raw URL" required>
-                            <button type="submit" class="btn btn-primary">載入</button>
-                        </form>
-                    </div>
-                </div>
-
             </div>
         </div>
 
@@ -168,7 +142,7 @@
                 <div class="card h-100">
                     <div class="card-header bg-warning text-dark fw-bold d-flex justify-content-between align-items-center">
                         <span>🥇 貴金屬重挫偵測</span>
-                        <small>跌幅 > 50% 示警</small>
+                        <small>跌幅 > 50%</small>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
@@ -205,7 +179,7 @@
                 <div class="card h-100">
                     <div class="card-header bg-primary text-white fw-bold d-flex justify-content-between align-items-center bg-gradient">
                         <span>💱 關鍵匯率監控</span>
-                        <small>半年內位階</small>
+                        <small>半年位階</small>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
@@ -273,8 +247,8 @@
                             </div>
                             <div class="col-6 col-md-3">
                                 <div class="metric-item">
-                                    <div class="metric-label">CRB 半年線</div>
-                                    <div class="metric-value text-muted" style="font-size: 0.9rem;">{{ raw_indicators.CRB_HalfYear|default:"N/A" }}</div>
+                                    <div class="metric-label">美元指數 (DXY)</div>
+                                    <div class="metric-value">{{ raw_indicators.Currency_DXY|default:"--" }}</div>
                                 </div>
                             </div>
                         </div>

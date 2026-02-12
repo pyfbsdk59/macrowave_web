@@ -1,54 +1,57 @@
 from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+from django.utils.timezone import localtime # [新增] 用來轉時區
 from django.contrib import messages
-from .utils import update_all_data
 from .models import DashboardData
 from .forms import UploadFileForm
 import json
 import datetime
+import requests
 
 def home(request):
-    """
-    首頁：只負責「讀取」資料庫現有資料並顯示，不執行爬蟲。
-    同時處理 JSON 檔案上傳。
-    """
-    # 1. 處理檔案上傳 (保留原有功能)
-    if request.method == 'POST' and 'file' in request.FILES:
-        form = UploadFileForm(request.POST, request.FILES)
-        if form.is_valid():
-            try:
-                file_data = json.load(request.FILES['file'])
-                # 標記來源為 Upload
-                file_data['source_type'] = 'JSON 上傳' 
-                DashboardData.objects.create(content=file_data)
-                messages.success(request, "JSON 檔案上傳並更新成功！")
-                return redirect('home')
-            except Exception as e:
-                messages.error(request, f"上傳錯誤: {e}")
+    # 1. 處理檔案上傳
+    if request.method == 'POST':
+        # A. 處理 JSON 檔案上傳
+        if 'file' in request.FILES:
+            form = UploadFileForm(request.POST, request.FILES)
+            if form.is_valid():
+                try:
+                    file_data = json.load(request.FILES['file'])
+                    file_data['source_type'] = 'JSON 上傳'
+                    DashboardData.objects.create(content=file_data)
+                    messages.success(request, "JSON 檔案上傳成功！")
+                    return redirect('home')
+                except Exception as e:
+                    messages.error(request, f"上傳錯誤: {e}")
+        
+        # [已移除] Gist URL 下載邏輯
+
     else:
         form = UploadFileForm()
 
-    # 2. 讀取資料庫最新一筆數據
-    latest_db_data = DashboardData.objects.first() # 假設 Meta ordering = ['-updated_at']
+    # 2. 讀取資料庫最新數據
+    latest_db_data = DashboardData.objects.first()
     
     context = {}
-    
     if latest_db_data:
         context = latest_db_data.content
-        # 確保有 source_type 欄位，舊資料可能沒有
         source = context.get('source_type', '未知來源')
-        time_str = latest_db_data.updated_at.strftime("%Y-%m-%d %H:%M:%S")
+        
+        # [修正] 強制轉為台灣時間顯示
+        local_dt = localtime(latest_db_data.updated_at)
+        time_str = local_dt.strftime("%Y-%m-%d %H:%M:%S")
+        
         context['data_source_display'] = f"{source} (時間: {time_str})"
     else:
-        context['data_source_display'] = "無數據 (請上傳檔案或點擊手動更新)"
-        # 提供預設空值以免 Template 報錯
-        context['us_jp_spread'] = {'us':0, 'jp':0, 'spread':0, 'status':'Safe'}
-        context['metals'] = []
-        context['mark17'] = []
-        context['total_score'] = 0
-        context['advice'] = "No Data"
+        context['data_source_display'] = "無數據"
 
     context['form'] = form
     return render(request, 'home.html', context)
+
+# ... (manual_scrape 和 api_upload 函式保持不變) ...
+# 請保留 api_upload，因為您的 GUI V48 需要它！
 
 def manual_scrape(request):
     """
