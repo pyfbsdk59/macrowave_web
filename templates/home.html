@@ -11,23 +11,35 @@
         .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 24px; transition: transform 0.2s; overflow: hidden; }
         .card:hover { transform: translateY(-3px); }
         .card-header { font-weight: bold; padding: 15px 20px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        
+        /* 狀態顏色 */
         .status-Safe { color: #198754; font-weight: bold; }
         .status-Warning { color: #fd7e14; font-weight: bold; }
         .status-Danger { color: #dc3545; font-weight: bold; }
         .status-Unknown { color: #6c757d; }
+
+        /* 建議標籤 */
         .advice-badge { padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 1.2rem; }
         .advice-Safe { background-color: #d1e7dd; color: #0f5132; }
         .advice-Caution { background-color: #fff3cd; color: #664d03; }
         .advice-Reduce { background-color: #ffecb5; color: #664d03; border: 2px solid #ffc107; }
         .advice-Flee { background-color: #f8d7da; color: #842029; }
+
+        /* 指標卡片樣式 */
         .metric-item { padding: 12px; border-radius: 8px; background-color: #f8f9fa; border: 1px solid #e9ecef; height: 100%; }
         .metric-label { font-size: 0.85rem; color: #6c757d; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
         .metric-value { font-size: 1.1rem; font-weight: 700; color: #212529; word-break: break-word; }
         .metric-sub { font-size: 0.75rem; color: #adb5bd; margin-top: 2px; }
+
+        /* 分類左側邊條 */
         .section-bar-tw { border-left: 5px solid #0d6efd; }
         .section-bar-us { border-left: 5px solid #dc3545; }
         .section-bar-cycle { border-left: 5px solid #198754; }
         .section-bar-sentiment { border-left: 5px solid #ffc107; }
+        
+        /* 數值漲跌顏色 (用於匯率) */
+        .diff-pos { color: #dc3545; } /* 漲為紅 (台股習慣) 或依個人習慣調整 */
+        .diff-neg { color: #198754; } /* 跌為綠 */
     </style>
 </head>
 <body>
@@ -51,41 +63,66 @@
         <div class="card shadow-sm mb-4">
             <div class="card-body">
                 <div class="row align-items-center text-center">
-                    <div class="col-md-4 mb-3 mb-md-0">
+                    
+                    <div class="col-md-3 mb-3 mb-md-0">
                         <h6 class="text-uppercase text-muted fw-bold" style="font-size: 0.8rem;">目前數據來源</h6>
                         <span class="badge bg-primary fs-6">{{ data_source_display }}</span>
+                        {% if date %}
+                        <div class="mt-1 text-muted" style="font-size: 0.85rem;">資料基準日: <strong>{{ date }}</strong></div>
+                        {% endif %}
                     </div>
-                    <div class="col-md-4 mb-3 mb-md-0 border-start border-end">
+
+                    <div class="col-md-3 mb-3 mb-md-0 border-start">
                         <form action="{% url 'manual_scrape' %}" method="post">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-outline-danger w-100 fw-bold" onclick="this.innerHTML='⏳ 連線更新中...'; this.disabled=true; this.form.submit();">
-                                🔄 雲端手動更新 (API)
+                            <button type="submit" class="btn btn-outline-danger w-100 fw-bold" onclick="this.innerHTML='⏳ 更新中...'; this.disabled=true; this.form.submit();">
+                                🔄 雲端爬蟲 (API)
                             </button>
                         </form>
-                        <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">Render 伺服器直接抓取</small>
+                        <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">Render 伺服器</small>
                     </div>
-                    <div class="col-md-4">
+
+                    <div class="col-md-3 mb-3 mb-md-0 border-start">
                         <button class="btn btn-outline-success w-100 fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#uploadBox">
                             📤 上傳 GUI JSON
                         </button>
-                        <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">使用本地 V35+ 完整數據 (推薦)</small>
+                        <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">選擇電腦檔案</small>
+                    </div>
+
+                    <div class="col-md-3 border-start">
+                        <button class="btn btn-outline-primary w-100 fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#urlBox">
+                            🔗 載入 Gist 連結
+                        </button>
+                        <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">GitHub Gist / URL</small>
                     </div>
                 </div>
-                <div class="collapse mt-3" id="uploadBox">
+
+                <div class="collapse mt-3" id="uploadBox" data-bs-parent=".card-body">
                     <div class="card card-body bg-light border-0">
                         <form method="post" enctype="multipart/form-data" class="d-flex gap-2 align-items-center">
                             {% csrf_token %}
                             <input type="file" name="file" class="form-control" required>
-                            <button type="submit" class="btn btn-success">確認上傳</button>
+                            <button type="submit" class="btn btn-success">上傳</button>
                         </form>
                     </div>
                 </div>
+
+                <div class="collapse mt-3" id="urlBox" data-bs-parent=".card-body">
+                    <div class="card card-body bg-light border-0">
+                        <form method="post" class="d-flex gap-2 align-items-center">
+                            {% csrf_token %}
+                            <input type="url" name="json_url" class="form-control" placeholder="請貼上 JSON 的 Raw URL" required>
+                            <button type="submit" class="btn btn-primary">載入</button>
+                        </form>
+                    </div>
+                </div>
+
             </div>
         </div>
 
         <div class="row">
             
-            <div class="col-md-12 mb-4">
+            <div class="col-12 mb-4">
                 <div class="card text-center p-4 bg-white">
                     <h5 class="text-muted mb-3 text-uppercase ls-1">Mark 17 總經風險評分</h5>
                     <div class="d-flex justify-content-center align-items-center gap-4 flex-wrap">
@@ -100,10 +137,10 @@
                 </div>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-lg-4 col-md-12">
                 <div class="card h-100">
                     <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                        <span>📉 美日債券利差監控</span>
+                        <span>📉 美日債券利差</span>
                         <small class="opacity-75">門檻: 2.0%</small>
                     </div>
                     <div class="card-body">
@@ -121,13 +158,13 @@
                             <span class="fs-4 status-{{ us_jp_spread.status }}">{{ us_jp_spread.spread }}%</span>
                         </div>
                         {% if us_jp_spread.spread < 2.0 %}
-                            <div class="alert alert-danger mt-3 mb-0 py-2 text-center fw-bold">⚠️ 警告：利差已跌破 2%</div>
+                            <div class="alert alert-danger mt-3 mb-0 py-2 text-center fw-bold">⚠️ 警告：利差跌破 2%</div>
                         {% endif %}
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-lg-4 col-md-12">
                 <div class="card h-100">
                     <div class="card-header bg-warning text-dark fw-bold d-flex justify-content-between align-items-center">
                         <span>🥇 貴金屬重挫偵測</span>
@@ -135,25 +172,27 @@
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-striped mb-0 align-middle">
+                            <table class="table table-striped mb-0 align-middle text-center" style="font-size: 0.9rem;">
                                 <thead class="table-light">
                                     <tr>
-                                        <th class="ps-3">商品</th>
-                                        <th class="text-end">現價</th>
-                                        <th class="text-end">跌幅</th>
-                                        <th class="text-center">狀態</th>
+                                        <th>商品</th>
+                                        <th>現價</th>
+                                        <th>跌幅</th>
+                                        <th>狀態</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for metal in metals %}
                                     <tr>
-                                        <td class="fw-bold ps-3">{{ metal.name }}</td>
-                                        <td class="text-end">{{ metal.current }}</td>
-                                        <td class="text-end text-muted">{{ metal.drop }}%</td>
-                                        <td class="text-center status-{{ metal.status }}">{{ metal.status }}</td>
+                                        <td class="fw-bold">{{ metal.name }}</td>
+                                        <td>{{ metal.current|floatformat:0 }}</td>
+                                        <td class="text-muted">{{ metal.drop|floatformat:1 }}%</td>
+                                        <td class="status-{{ metal.status }}">
+                                            {% if metal.status == 'Danger' %}⚠️{% else %}OK{% endif %}
+                                        </td>
                                     </tr>
                                     {% empty %}
-                                    <tr><td colspan="4" class="text-center text-muted py-3">暫無數據</td></tr>
+                                    <tr><td colspan="4" class="text-muted py-3">暫無數據</td></tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
@@ -161,10 +200,50 @@
                     </div>
                 </div>
             </div>
+
+            <div class="col-lg-4 col-md-12">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white fw-bold d-flex justify-content-between align-items-center bg-gradient">
+                        <span>💱 關鍵匯率監控</span>
+                        <small>半年內位階</small>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 align-middle text-center" style="font-size: 0.9rem;">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>貨幣</th>
+                                        <th>現價</th>
+                                        <th>距高點</th>
+                                        <th>距低點</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for curr in currencies %}
+                                    <tr>
+                                        <td class="fw-bold text-start ps-3">{{ curr.name }}</td>
+                                        <td class="fw-bold">{{ curr.current }}</td>
+                                        <td class="{% if curr.diff_high < -5 %}text-success fw-bold{% else %}text-muted{% endif %}">
+                                            {{ curr.diff_high }}%
+                                        </td>
+                                        <td class="{% if curr.diff_low > 5 %}text-danger fw-bold{% else %}text-muted{% endif %}">
+                                            {{ curr.diff_low }}%
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr><td colspan="4" class="text-muted py-3">暫無匯率數據</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         {% if raw_indicators %}
-        <div class="row mt-2">
+        <div class="row mt-4">
             <div class="col-12">
                 <h4 class="mb-3 border-start border-5 border-primary ps-3 fw-bold">📑 整體經濟指標細項</h4>
             </div>
@@ -219,7 +298,6 @@
                                 <div class="metric-item">
                                     <div class="metric-label">市值貨幣比</div>
                                     <div class="metric-value">{{ raw_indicators.MV_Ratio|default:"--" }}</div>
-                                    <div class="metric-sub">巴菲特指標參考</div>
                                 </div>
                             </div>
                             <div class="col-6">
@@ -260,15 +338,14 @@
                             <div class="col-6">
                                 <div class="metric-item">
                                     <div class="metric-label">長短利差 (10Y-3M)</div>
-                                    <div class="metric-value {% if raw_indicators.Spread_3M_10Y|first == '-' %}text-danger{% endif %}">
+                                    <div class="metric-value {% if raw_indicators.Spread_3M_10Y < 0 %}text-danger{% endif %}">
                                         {{ raw_indicators.Spread_3M_10Y|default:"--" }}
                                     </div>
-                                    <div class="metric-sub">負值代表倒掛</div>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="metric-item">
-                                    <div class="metric-label">衰退機率 (Recession)</div>
+                                    <div class="metric-label">衰退機率</div>
                                     <div class="metric-value text-danger">{{ raw_indicators.Recession_Prob|default:"--" }}</div>
                                     <div class="metric-sub">{{ raw_indicators.Recession_Date|default:"" }}</div>
                                 </div>
@@ -285,7 +362,7 @@
                         <div class="row g-3">
                             <div class="col-6">
                                 <div class="metric-item">
-                                    <div class="metric-label">中國 PMI (製造業)</div>
+                                    <div class="metric-label">中國 PMI</div>
                                     <div class="metric-value">{{ raw_indicators.China_PMI|default:"--" }}</div>
                                     <div class="metric-sub">{{ raw_indicators.China_PMI_Date|default:"" }}</div>
                                 </div>
@@ -300,7 +377,6 @@
                                 <div class="metric-item">
                                     <div class="metric-label">美國領先指標 (LEI)</div>
                                     <div class="metric-value">{{ raw_indicators.Leading_Index|default:"--" }}</div>
-                                    <div class="metric-sub">{{ raw_indicators.Leading_Index_Date|default:"Latest" }}</div>
                                 </div>
                             </div>
                         </div>
@@ -374,7 +450,7 @@
                                             </td>
                                         </tr>
                                         {% empty %}
-                                        <tr><td colspan="3" class="text-center text-muted py-3">暫無數據，請執行更新</td></tr>
+                                        <tr><td colspan="3" class="text-center text-muted py-3">暫無數據</td></tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>
