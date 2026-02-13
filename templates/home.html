@@ -11,26 +11,25 @@
         .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 24px; transition: transform 0.2s; overflow: hidden; }
         .card:hover { transform: translateY(-3px); }
         .card-header { font-weight: bold; padding: 15px 20px; border-bottom: 1px solid rgba(0,0,0,0.05); }
-        
         .status-Safe { color: #198754; font-weight: bold; }
         .status-Warning { color: #fd7e14; font-weight: bold; }
         .status-Danger { color: #dc3545; font-weight: bold; }
-        
         .advice-badge { padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 1.2rem; }
         .advice-Safe { background-color: #d1e7dd; color: #0f5132; }
         .advice-Caution { background-color: #fff3cd; color: #664d03; }
         .advice-Reduce { background-color: #ffecb5; color: #664d03; border: 2px solid #ffc107; }
         .advice-Flee { background-color: #f8d7da; color: #842029; }
-
         .metric-item { padding: 12px; border-radius: 8px; background-color: #f8f9fa; border: 1px solid #e9ecef; height: 100%; }
         .metric-label { font-size: 0.85rem; color: #6c757d; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
         .metric-value { font-size: 1.1rem; font-weight: 700; color: #212529; word-break: break-word; }
         .metric-sub { font-size: 0.75rem; color: #adb5bd; margin-top: 2px; }
-
         .section-bar-tw { border-left: 5px solid #0d6efd; }
         .section-bar-us { border-left: 5px solid #dc3545; }
         .section-bar-cycle { border-left: 5px solid #198754; }
         .section-bar-sentiment { border-left: 5px solid #ffc107; }
+        .text-small { font-size: 0.85rem; }
+        .text-diff-pos { color: #dc3545; font-weight: bold; }
+        .text-diff-neg { color: #198754; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -54,7 +53,6 @@
         <div class="card shadow-sm mb-4">
             <div class="card-body">
                 <div class="row align-items-center text-center">
-                    
                     <div class="col-md-4 mb-3 mb-md-0">
                         <h6 class="text-uppercase text-muted fw-bold" style="font-size: 0.8rem;">目前數據來源</h6>
                         <span class="badge bg-primary fs-6 text-wrap" style="line-height: 1.5;">{{ data_source_display }}</span>
@@ -62,7 +60,6 @@
                         <div class="mt-2 text-muted" style="font-size: 0.85rem;">資料基準日: <strong>{{ date }}</strong></div>
                         {% endif %}
                     </div>
-
                     <div class="col-md-4 mb-3 mb-md-0 border-start border-end">
                         <form action="{% url 'manual_scrape' %}" method="post">
                             {% csrf_token %}
@@ -72,16 +69,13 @@
                         </form>
                         <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">Render 伺服器</small>
                     </div>
-
                     <div class="col-md-4">
                         <button class="btn btn-outline-success w-100 fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#uploadBox">
                             📤 上傳 GUI JSON
                         </button>
                         <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">選擇電腦檔案</small>
                     </div>
-                    
-                    </div>
-
+                </div>
                 <div class="collapse mt-3" id="uploadBox" data-bs-parent=".card-body">
                     <div class="card card-body bg-light border-0">
                         <form method="post" enctype="multipart/form-data" class="d-flex gap-2 align-items-center justify-content-center">
@@ -95,7 +89,6 @@
         </div>
 
         <div class="row">
-            
             <div class="col-12 mb-4">
                 <div class="card text-center p-4 bg-white">
                     <h5 class="text-muted mb-3 text-uppercase ls-1">Mark 17 總經風險評分</h5>
@@ -148,12 +141,7 @@
                         <div class="table-responsive">
                             <table class="table table-striped mb-0 align-middle text-center" style="font-size: 0.9rem;">
                                 <thead class="table-light">
-                                    <tr>
-                                        <th>商品</th>
-                                        <th>現價</th>
-                                        <th>跌幅</th>
-                                        <th>狀態</th>
-                                    </tr>
+                                    <tr><th>商品</th><th>現價</th><th>跌幅</th><th>狀態</th></tr>
                                 </thead>
                                 <tbody>
                                     {% for metal in metals %}
@@ -161,13 +149,9 @@
                                         <td class="fw-bold">{{ metal.name }}</td>
                                         <td>{{ metal.current|floatformat:0 }}</td>
                                         <td class="text-muted">{{ metal.drop|floatformat:1 }}%</td>
-                                        <td class="status-{{ metal.status }}">
-                                            {% if metal.status == 'Danger' %}⚠️{% else %}OK{% endif %}
-                                        </td>
+                                        <td class="status-{{ metal.status }}">{% if metal.status == 'Danger' %}⚠️{% else %}OK{% endif %}</td>
                                     </tr>
-                                    {% empty %}
-                                    <tr><td colspan="4" class="text-muted py-3">暫無數據</td></tr>
-                                    {% endfor %}
+                                    {% empty %}<tr><td colspan="4" class="text-muted py-3">暫無數據</td></tr>{% endfor %}
                                 </tbody>
                             </table>
                         </div>
@@ -185,27 +169,138 @@
                         <div class="table-responsive">
                             <table class="table table-hover mb-0 align-middle text-center" style="font-size: 0.9rem;">
                                 <thead class="table-light">
-                                    <tr>
-                                        <th>貨幣</th>
-                                        <th>現價</th>
-                                        <th>距高點</th>
-                                        <th>距低點</th>
-                                    </tr>
+                                    <tr><th>貨幣</th><th>現價</th><th>距高點</th><th>距低點</th></tr>
                                 </thead>
                                 <tbody>
                                     {% for curr in currencies %}
                                     <tr>
                                         <td class="fw-bold text-start ps-3">{{ curr.name }}</td>
                                         <td class="fw-bold">{{ curr.current }}</td>
-                                        <td class="{% if curr.diff_high < -5 %}text-success fw-bold{% else %}text-muted{% endif %}">
-                                            {{ curr.diff_high }}%
-                                        </td>
-                                        <td class="{% if curr.diff_low > 5 %}text-danger fw-bold{% else %}text-muted{% endif %}">
-                                            {{ curr.diff_low }}%
-                                        </td>
+                                        <td class="{% if curr.diff_high < -5 %}text-success fw-bold{% else %}text-muted{% endif %}">{{ curr.diff_high }}%</td>
+                                        <td class="{% if curr.diff_low > 5 %}text-danger fw-bold{% else %}text-muted{% endif %}">{{ curr.diff_low }}%</td>
+                                    </tr>
+                                    {% empty %}<tr><td colspan="4" class="text-muted py-3">暫無匯率數據</td></tr>{% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if raw_indicators %}
+        <div class="row mt-4">
+            <div class="col-12"><h4 class="mb-3 border-start border-5 border-primary ps-3 fw-bold">📑 整體經濟指標細項</h4></div>
+            <div class="col-12 mb-3">
+                <div class="card section-bar-tw">
+                    <div class="card-header bg-light">📌 核心概況 & 時間</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-6 col-md-3"><div class="metric-item"><div class="metric-label">資料日期</div><div class="metric-value">{{ raw_indicators.Date|default:"--" }}</div></div></div>
+                            <div class="col-6 col-md-3"><div class="metric-item"><div class="metric-label">Mark 17 得分</div><div class="metric-value text-primary">{{ raw_indicators.Mark17_Score|default:"--" }}</div></div></div>
+                            <div class="col-6 col-md-3"><div class="metric-item"><div class="metric-label">CRB 指數</div><div class="metric-value">{{ raw_indicators.CRB_Index|default:"--" }}</div></div></div>
+                            <div class="col-6 col-md-3"><div class="metric-item"><div class="metric-label">美元指數 (DXY)</div><div class="metric-value">{{ raw_indicators.Currency_DXY|default:"--" }}</div></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="card section-bar-tw">
+                    <div class="card-header bg-light">💰 台灣資金與股市</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-6"><div class="metric-item"><div class="metric-label">台股總市值 (百萬)</div><div class="metric-value text-success">{{ raw_indicators.MV_Num|default:"--" }}</div><div class="metric-sub">{{ raw_indicators.MV_Date|default:"" }}</div></div></div>
+                            <div class="col-6"><div class="metric-item"><div class="metric-label">市值貨幣比</div><div class="metric-value">{{ raw_indicators.MV_Ratio|default:"--" }}</div></div></div>
+                            <div class="col-6"><div class="metric-item"><div class="metric-label">M1B 年增率 (YoY)</div><div class="metric-value">{{ raw_indicators.M1b_YoY|default:"--" }}%</div></div></div>
+                            <div class="col-6"><div class="metric-item"><div class="metric-label">M1B 數值 (億)</div><div class="metric-value">{{ raw_indicators.M1b_Num|default:"--" }}</div><div class="metric-sub">{{ raw_indicators.M1b_Date|default:"" }}</div></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="card section-bar-us">
+                    <div class="card-header bg-light">📉 美國債市與利率</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-6"><div class="metric-item"><div class="metric-label">美債 10年殖利率</div><div class="metric-value">{{ raw_indicators.US_10Y|default:"--" }}%</div></div></div>
+                            <div class="col-6"><div class="metric-item"><div class="metric-label">美債 3個月殖利率</div><div class="metric-value">{{ raw_indicators.US_3M|default:"--" }}%</div></div></div>
+                            <div class="col-6"><div class="metric-item"><div class="metric-label">長短利差 (10Y-3M)</div><div class="metric-value {% if raw_indicators.Spread_3M_10Y < 0 %}text-danger{% endif %}">{{ raw_indicators.Spread_3M_10Y|default:"--" }}</div></div></div>
+                            <div class="col-6"><div class="metric-item"><div class="metric-label">衰退機率</div><div class="metric-value text-danger">{{ raw_indicators.Recession_Prob|default:"--" }}</div><div class="metric-sub">{{ raw_indicators.Recession_Date|default:"" }}</div></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="card section-bar-cycle">
+                    <div class="card-header bg-light">🏭 景氣循環與製造業</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-6"><div class="metric-item"><div class="metric-label">中國 PMI</div><div class="metric-value">{{ raw_indicators.China_PMI|default:"--" }}</div><div class="metric-sub">{{ raw_indicators.China_PMI_Date|default:"" }}</div></div></div>
+                            <div class="col-6"><div class="metric-item"><div class="metric-label">美國失業率</div><div class="metric-value">{{ raw_indicators.Unemployment|default:"--" }}%</div></div></div>
+                            <div class="col-12"><div class="metric-item"><div class="metric-label">美國領先指標 (LEI)</div><div class="metric-value">{{ raw_indicators.Leading_Index|default:"--" }}</div></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="card section-bar-sentiment">
+                    <div class="card-header bg-light">🛍️ 消費信心與訂單</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-6"><div class="metric-item"><div class="metric-label">密大消費者信心</div><div class="metric-value">{{ raw_indicators.Michigan_Index|default:"--" }}</div><div class="metric-sub">{{ raw_indicators.Michigan_Date|default:"" }}</div></div></div>
+                            <div class="col-6"><div class="metric-item"><div class="metric-label">耐久財新訂單 (YoY)</div><div class="metric-value">{{ raw_indicators.Durable_YoY_New|default:"--" }}</div></div></div>
+                            <div class="col-12"><div class="metric-item"><div class="metric-label">扣除國防耐久財 (YoY)</div><div class="metric-value">{{ raw_indicators.Durable_YoY_Old|default:"--" }}</div></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="row mt-2">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-secondary text-white fw-bold d-flex justify-content-between align-items-center">
+                        <span>🌍 全球主要股市位階偵測 (乖離率監控)</span>
+                        <small>負值代表回檔幅度，正值代表反彈幅度</small>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered mb-0 align-middle text-center" style="font-size: 0.85rem;">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th rowspan="2" class="align-middle">指數名稱</th>
+                                        <th rowspan="2" class="align-middle bg-light">現價</th>
+                                        <th colspan="2">半年 (6M)</th>
+                                        <th colspan="2">一年 (1Y)</th>
+                                        <th colspan="2">三年 (3Y)</th>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-muted">距高點 %</th>
+                                        <th class="text-muted">距低點 %</th>
+                                        <th class="text-muted">距高點 %</th>
+                                        <th class="text-muted">距低點 %</th>
+                                        <th class="text-muted">距高點 %</th>
+                                        <th class="text-muted">距低點 %</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for m in global_markets %}
+                                    <tr>
+                                        <td class="fw-bold text-start ps-3">{{ m.name }}</td>
+                                        <td class="fw-bold bg-light">{{ m.current }}</td>
+                                        
+                                        <td class="{% if m.6M_High_Diff < -10 %}text-success fw-bold{% endif %}">{{ m.6M_High_Diff }}%</td>
+                                        <td class="{% if m.6M_Low_Diff > 10 %}text-danger fw-bold{% endif %}">{{ m.6M_Low_Diff }}%</td>
+                                        
+                                        <td class="{% if m.1Y_High_Diff < -15 %}text-success fw-bold{% endif %}">{{ m.1Y_High_Diff }}%</td>
+                                        <td class="{% if m.1Y_Low_Diff > 15 %}text-danger fw-bold{% endif %}">{{ m.1Y_Low_Diff }}%</td>
+                                        
+                                        <td class="{% if m.3Y_High_Diff < -20 %}text-success fw-bold{% endif %}">{{ m.3Y_High_Diff }}%</td>
+                                        <td class="{% if m.3Y_Low_Diff > 20 %}text-danger fw-bold{% endif %}">{{ m.3Y_Low_Diff }}%</td>
                                     </tr>
                                     {% empty %}
-                                    <tr><td colspan="4" class="text-muted py-3">暫無匯率數據</td></tr>
+                                    <tr><td colspan="8" class="py-3 text-muted">暫無股市位階數據</td></tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
@@ -213,187 +308,12 @@
                     </div>
                 </div>
             </div>
-
         </div>
-
-        {% if raw_indicators %}
-        <div class="row mt-4">
-            <div class="col-12">
-                <h4 class="mb-3 border-start border-5 border-primary ps-3 fw-bold">📑 整體經濟指標細項</h4>
-            </div>
-
-            <div class="col-12 mb-3">
-                <div class="card section-bar-tw">
-                    <div class="card-header bg-light">📌 核心概況 & 時間</div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-6 col-md-3">
-                                <div class="metric-item">
-                                    <div class="metric-label">資料日期</div>
-                                    <div class="metric-value">{{ raw_indicators.Date|default:"--" }}</div>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="metric-item">
-                                    <div class="metric-label">Mark 17 得分</div>
-                                    <div class="metric-value text-primary">{{ raw_indicators.Mark17_Score|default:"--" }}</div>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="metric-item">
-                                    <div class="metric-label">CRB 指數</div>
-                                    <div class="metric-value">{{ raw_indicators.CRB_Index|default:"--" }}</div>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="metric-item">
-                                    <div class="metric-label">美元指數 (DXY)</div>
-                                    <div class="metric-value">{{ raw_indicators.Currency_DXY|default:"--" }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-                <div class="card section-bar-tw">
-                    <div class="card-header bg-light">💰 台灣資金與股市</div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="metric-item">
-                                    <div class="metric-label">台股總市值 (百萬)</div>
-                                    <div class="metric-value text-success">{{ raw_indicators.MV_Num|default:"--" }}</div>
-                                    <div class="metric-sub">{{ raw_indicators.MV_Date|default:"" }}</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="metric-item">
-                                    <div class="metric-label">市值貨幣比</div>
-                                    <div class="metric-value">{{ raw_indicators.MV_Ratio|default:"--" }}</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="metric-item">
-                                    <div class="metric-label">M1B 年增率 (YoY)</div>
-                                    <div class="metric-value">{{ raw_indicators.M1b_YoY|default:"--" }}%</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="metric-item">
-                                    <div class="metric-label">M1B 數值 (億)</div>
-                                    <div class="metric-value">{{ raw_indicators.M1b_Num|default:"--" }}</div>
-                                    <div class="metric-sub">{{ raw_indicators.M1b_Date|default:"" }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-                <div class="card section-bar-us">
-                    <div class="card-header bg-light">📉 美國債市與利率</div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="metric-item">
-                                    <div class="metric-label">美債 10年殖利率</div>
-                                    <div class="metric-value">{{ raw_indicators.US_10Y|default:"--" }}%</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="metric-item">
-                                    <div class="metric-label">美債 3個月殖利率</div>
-                                    <div class="metric-value">{{ raw_indicators.US_3M|default:"--" }}%</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="metric-item">
-                                    <div class="metric-label">長短利差 (10Y-3M)</div>
-                                    <div class="metric-value {% if raw_indicators.Spread_3M_10Y < 0 %}text-danger{% endif %}">
-                                        {{ raw_indicators.Spread_3M_10Y|default:"--" }}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="metric-item">
-                                    <div class="metric-label">衰退機率</div>
-                                    <div class="metric-value text-danger">{{ raw_indicators.Recession_Prob|default:"--" }}</div>
-                                    <div class="metric-sub">{{ raw_indicators.Recession_Date|default:"" }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-                <div class="card section-bar-cycle">
-                    <div class="card-header bg-light">🏭 景氣循環與製造業</div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="metric-item">
-                                    <div class="metric-label">中國 PMI</div>
-                                    <div class="metric-value">{{ raw_indicators.China_PMI|default:"--" }}</div>
-                                    <div class="metric-sub">{{ raw_indicators.China_PMI_Date|default:"" }}</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="metric-item">
-                                    <div class="metric-label">美國失業率</div>
-                                    <div class="metric-value">{{ raw_indicators.Unemployment|default:"--" }}%</div>
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <div class="metric-item">
-                                    <div class="metric-label">美國領先指標 (LEI)</div>
-                                    <div class="metric-value">{{ raw_indicators.Leading_Index|default:"--" }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-                <div class="card section-bar-sentiment">
-                    <div class="card-header bg-light">🛍️ 消費信心與訂單</div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="metric-item">
-                                    <div class="metric-label">密大消費者信心</div>
-                                    <div class="metric-value">{{ raw_indicators.Michigan_Index|default:"--" }}</div>
-                                    <div class="metric-sub">{{ raw_indicators.Michigan_Date|default:"" }}</div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="metric-item">
-                                    <div class="metric-label">耐久財新訂單 (YoY)</div>
-                                    <div class="metric-value">{{ raw_indicators.Durable_YoY_New|default:"--" }}</div>
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <div class="metric-item">
-                                    <div class="metric-label">扣除國防耐久財 (YoY)</div>
-                                    <div class="metric-value">{{ raw_indicators.Durable_YoY_Old|default:"--" }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-        {% endif %}
 
         <div class="row mt-4">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-header bg-secondary text-white fw-bold d-flex justify-content-between" data-bs-toggle="collapse" href="#mark17Details" role="button" aria-expanded="false">
+                    <div class="card-header bg-light text-dark fw-bold d-flex justify-content-between" data-bs-toggle="collapse" href="#mark17Details" role="button" aria-expanded="false">
                         <span>📋 Mark 17 詳細計分表</span>
                         <small>▼ 點擊展開/收合</small>
                     </div>
@@ -402,30 +322,16 @@
                             <div class="table-responsive">
                                 <table class="table table-hover mb-0 align-middle">
                                     <thead class="table-light">
-                                        <tr>
-                                            <th>監測項目</th>
-                                            <th class="text-center">數值 / 狀態</th>
-                                            <th class="text-center">風險得分</th>
-                                        </tr>
+                                        <tr><th>監測項目</th><th class="text-center">數值 / 狀態</th><th class="text-center">風險得分</th></tr>
                                     </thead>
                                     <tbody>
                                         {% for item in mark17 %}
                                         <tr>
                                             <td>{{ item.item }}</td>
                                             <td class="text-center fw-bold status-{{ item.status }}">{{ item.value }}</td>
-                                            <td class="text-center">
-                                                {% if item.score|stringformat:"s" != "0" and item.score != 0 and item.score != "-" %}
-                                                    <span class="badge bg-danger rounded-pill">
-                                                        {% if item.score|stringformat:"s"|first != "+" %}+{% endif %}{{ item.score }}
-                                                    </span>
-                                                {% else %}
-                                                    <span class="text-muted text-opacity-50">-</span>
-                                                {% endif %}
-                                            </td>
+                                            <td class="text-center">{% if item.score|stringformat:"s" != "0" and item.score != 0 and item.score != "-" %}<span class="badge bg-danger rounded-pill">{% if item.score|stringformat:"s"|first != "+" %}+{% endif %}{{ item.score }}</span>{% else %}<span class="text-muted text-opacity-50">-</span>{% endif %}</td>
                                         </tr>
-                                        {% empty %}
-                                        <tr><td colspan="3" class="text-center text-muted py-3">暫無數據</td></tr>
-                                        {% endfor %}
+                                        {% empty %}<tr><td colspan="3" class="text-center text-muted py-3">暫無數據</td></tr>{% endfor %}
                                     </tbody>
                                 </table>
                             </div>
