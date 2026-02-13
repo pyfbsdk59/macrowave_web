@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
-from django.utils.timezone import localtime # [新增] 用來轉時區
+from django.utils.timezone import localtime
 from django.contrib import messages
 from .models import DashboardData
 from .forms import UploadFileForm
@@ -11,9 +11,8 @@ import datetime
 import requests
 
 def home(request):
-    # 1. 處理檔案上傳
+    # 1. 處理檔案上傳 (保持不變)
     if request.method == 'POST':
-        # A. 處理 JSON 檔案上傳
         if 'file' in request.FILES:
             form = UploadFileForm(request.POST, request.FILES)
             if form.is_valid():
@@ -25,9 +24,6 @@ def home(request):
                     return redirect('home')
                 except Exception as e:
                     messages.error(request, f"上傳錯誤: {e}")
-        
-        # [已移除] Gist URL 下載邏輯
-
     else:
         form = UploadFileForm()
 
@@ -39,9 +35,13 @@ def home(request):
         context = latest_db_data.content
         source = context.get('source_type', '未知來源')
         
-        # [修正] 強制轉為台灣時間顯示
-        local_dt = localtime(latest_db_data.updated_at)
-        time_str = local_dt.strftime("%Y-%m-%d %H:%M:%S")
+        # [修改] 優先使用 JSON 內建的 update_time (由 GUI 產生的台灣時間)
+        if 'update_time' in context:
+            time_str = context['update_time']
+        else:
+            # 相容舊版：使用資料庫時間轉時區
+            local_dt = localtime(latest_db_data.updated_at)
+            time_str = local_dt.strftime("%Y-%m-%d %H:%M:%S")
         
         context['data_source_display'] = f"{source} (時間: {time_str})"
     else:
@@ -50,8 +50,7 @@ def home(request):
     context['form'] = form
     return render(request, 'home.html', context)
 
-# ... (manual_scrape 和 api_upload 函式保持不變) ...
-# 請保留 api_upload，因為您的 GUI V48 需要它！
+# ... (其餘函式 api_upload 等保持不變) ...
 
 def manual_scrape(request):
     """
